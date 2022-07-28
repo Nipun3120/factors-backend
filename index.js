@@ -7,14 +7,14 @@ const users = require("./api/users");
 const images = require("./api/images");
 
 // port
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 
 // creating server
 const app = express();
 const server = http.createServer(app);
 
 // cors
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: "*" }));
 
 // middlewares
 app.use(
