@@ -7,7 +7,7 @@ const users = require("./api/users");
 const images = require("./api/images");
 
 // port
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 // creating server
 const app = express();

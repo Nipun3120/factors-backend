@@ -9,6 +9,7 @@ const Image = require("../database/image");
 const upload = require("../middlewares/image");
 const { uploadImageTos3 } = require("../logicModels/uploadImageToS3");
 const { AWS_CONSTANTS } = require("../constants");
+const { getProductImage } = require("../internalService/api/products");
 
 router.post("/fetchUserImage/", async (req, res) => {
   let uid = ObjectId(req.body.uid);
@@ -45,7 +46,7 @@ router.post("/fetchAllImages/", async (req, res) => {
         id: image._id,
       };
     });
-    // productsArray = productsArray.reverse();
+    productsArray = productsArray.reverse();
     res.json({ productsArray });
   }
 });
@@ -85,6 +86,25 @@ router.post("/saveImage/", upload.single("userImage"), async (req, res) => {
         res.json({ message: "image not saved", ok: false }).status(400);
       });
   }
+});
+
+router.post("/getProduct/", async (req, res) => {
+  const uid = ObjectId(req.body.uid);
+  const productId = ObjectId(req.body.productId);
+
+  console.log(uid, productId);
+
+  let promiseArray = [];
+
+  promiseArray.push(
+    User.findById({ _id: uid }),
+    Image.findById({ _id: productId })
+  );
+
+  let result = await Promise.all(promiseArray);
+  getProductImage(result[0].imageUrl, result[1].imageLink);
+  console.log(result[0].imageUrl, result[0].name, result[0].email);
+  res.json({ imageUrl: result[0].imageUrl, ok: true, image: result[0].image });
 });
 
 module.exports = router;
