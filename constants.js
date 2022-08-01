@@ -3,5 +3,6 @@ exports.AWS_CONSTANTS = {
   BUCKET_NAME: "factors-storage",
   USER_DIRECTORY: "user-images/",
   CLOTH_DIRECTORY: "clothes/",
+  USER_PRODUCT: "results/",
   EXTENSION: "png",
 };

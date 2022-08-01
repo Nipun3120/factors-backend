@@ -6,6 +6,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../database/users");
 const Image = require("../database/image");
+const UserProduct = require("../database/userProduct");
 const upload = require("../middlewares/image");
 const { uploadImageTos3 } = require("../logicModels/uploadImageToS3");
 const { AWS_CONSTANTS } = require("../constants");
@@ -32,6 +33,7 @@ router.post("/fetchUserImage/", async (req, res) => {
 
 router.post("/fetchAllImages/", async (req, res) => {
   let uid = ObjectId(req.body.uid);
+  console.log(uid);
   const user = await User.findById({ _id: uid }).catch((err) => {
     res.json({ message: "user not found", ok: false }).status(403);
   });
@@ -39,7 +41,7 @@ router.post("/fetchAllImages/", async (req, res) => {
     res.json({ message: "user not found", ok: false }).status(403);
   } else {
     const images = await Image.find();
-
+    console.log(images);
     let productsArray = images.map((image, index) => {
       return {
         imageLink: image.imageLink,
@@ -93,18 +95,52 @@ router.post("/getProduct/", async (req, res) => {
   const productId = ObjectId(req.body.productId);
 
   console.log(uid, productId);
+  const requestedProduct = await UserProduct.findOne({
+    uid,
+    ImageId: productId,
+  }).catch((err) => {
+    res
+      .json({ message: "try again", ok: false, image: null, imageUrl: null })
+      .status(400);
+  });
 
-  let promiseArray = [];
+  if (requestedProduct) {
+    res
+      .json({
+        message: "",
+        ok: true,
+        image: null,
+        imageUrl: requestedProduct.imageLink,
+      })
+      .status(200);
+  } else {
+    let promiseArray = [];
 
-  promiseArray.push(
-    User.findById({ _id: uid }),
-    Image.findById({ _id: productId })
-  );
+    promiseArray.push(
+      User.findById({ _id: uid }),
+      Image.findById({ _id: productId })
+    );
 
-  let result = await Promise.all(promiseArray);
-  getProductImage(result[0].imageUrl, result[1].imageLink);
-  console.log(result[0].imageUrl, result[0].name, result[0].email);
-  res.json({ imageUrl: result[0].imageUrl, ok: true, image: result[0].image });
+    let result = await Promise.all(promiseArray);
+    const resultImage = await getProductImage(
+      result[0].imageUrl,
+      result[1].imageLink
+    );
+
+    const userProductLink = await uploadImageTos3(
+      resultImage,
+      "image/png",
+      AWS_CONSTANTS.USER_PRODUCT
+    );
+
+    const userProduct = new UserProduct({
+      uid,
+      ImageId: productId,
+      imageLink: userProductLink,
+    });
+    userProduct.save();
+    res.json({ imageUrl: userProductLink, ok: true, image: resultImage });
+  }
 });
 
 module.exports = router;
