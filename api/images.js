@@ -94,7 +94,6 @@ router.post("/getProduct/", async (req, res) => {
   const uid = ObjectId(req.body.uid);
   const productId = ObjectId(req.body.productId);
 
-  console.log(uid, productId);
   const requestedProduct = await UserProduct.findOne({
     uid,
     ImageId: productId,
@@ -109,8 +108,7 @@ router.post("/getProduct/", async (req, res) => {
       .json({
         message: "",
         ok: true,
-        image: null,
-        imageUrl: requestedProduct.imageLink,
+        image: requestedProduct.image,
       })
       .status(200);
   } else {
@@ -127,19 +125,13 @@ router.post("/getProduct/", async (req, res) => {
       result[1].imageLink
     );
 
-    const userProductLink = await uploadImageTos3(
-      resultImage,
-      "image/png",
-      AWS_CONSTANTS.USER_PRODUCT
-    );
-
     const userProduct = new UserProduct({
       uid,
       ImageId: productId,
-      imageLink: userProductLink,
+      image: resultImage,
     });
     userProduct.save();
-    res.json({ imageUrl: userProductLink, ok: true, image: resultImage });
+    res.json({ ok: true, image: resultImage }).status(200);
   }
 });
 

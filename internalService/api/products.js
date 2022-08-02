@@ -1,7 +1,7 @@
 const { default: axios } = require("axios");
 
 // const CRYPT_URL = "http://localhost:8000/";
-const CRYPT_URL = "http://9cb7-35-233-245-128.ngrok.io";
+const CRYPT_URL = "http://620b-34-75-135-11.ngrok.io";
 
 exports.getProductImage = async (userImage, productImage) => {
   const config = {
@@ -16,6 +16,5 @@ exports.getProductImage = async (userImage, productImage) => {
       console.log(err);
     });
 
-  console.log(result);
   return result.data.resultImage;
 };

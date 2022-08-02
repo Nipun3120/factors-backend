@@ -11,7 +11,6 @@ const s3 = new AWS.S3();
 
 exports.uploadImageTos3 = async (buffer, ContentType, directory) => {
   let imagePath = Date.now();
-
   const uploadParams = {
     Bucket: AWS_CONSTANTS.BUCKET_NAME,
     Key: directory + imagePath,
