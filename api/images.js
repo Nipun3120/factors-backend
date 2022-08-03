@@ -11,6 +11,7 @@ const upload = require("../middlewares/image");
 const { uploadImageTos3 } = require("../logicModels/uploadImageToS3");
 const { AWS_CONSTANTS } = require("../constants");
 const { getProductImage } = require("../internalService/api/products");
+const productDelete = require("../logicModels/dbHelpers");
 
 router.post("/fetchUserImage/", async (req, res) => {
   let uid = ObjectId(req.body.uid);
@@ -33,7 +34,6 @@ router.post("/fetchUserImage/", async (req, res) => {
 
 router.post("/fetchAllImages/", async (req, res) => {
   let uid = ObjectId(req.body.uid);
-  console.log(uid);
   const user = await User.findById({ _id: uid }).catch((err) => {
     res.json({ message: "user not found", ok: false }).status(403);
   });
@@ -41,13 +41,14 @@ router.post("/fetchAllImages/", async (req, res) => {
     res.json({ message: "user not found", ok: false }).status(403);
   } else {
     const images = await Image.find();
-    console.log(images);
-    let productsArray = images.map((image, index) => {
-      return {
-        imageLink: image.imageLink,
-        id: image._id,
-      };
-    });
+    let productsArray = images
+      .filter((image) => image.isDeleted === false)
+      .map((image, index) => {
+        return {
+          imageLink: image.imageLink,
+          id: image._id,
+        };
+      });
     productsArray = productsArray.reverse();
     res.json({ productsArray });
   }
@@ -133,6 +134,17 @@ router.post("/getProduct/", async (req, res) => {
     userProduct.save();
     res.json({ ok: true, image: resultImage }).status(200);
   }
+});
+
+router.post("/deleteProduct", async (req, res) => {
+  // const productId = ObjectId(req.body.productId);
+  const productId = req.body.productId;
+  console.log(productId);
+  productDelete(productId).catch((err) => {
+    console.log("error while deleting: ", err);
+    res.json({ ok: false, message: "try again !!" }).status(400);
+  });
+  res.json({ ok: true, message: "" }).status(200);
 });
 
 module.exports = router;

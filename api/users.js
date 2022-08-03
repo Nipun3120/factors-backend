@@ -1,4 +1,5 @@
 const fs = require("fs");
+const ObjectId = require("mongodb").ObjectId;
 const bcrypt = require("bcrypt");
 const express = require("express");
 const uuidv4 = require("uuid");
@@ -7,7 +8,6 @@ const router = express.Router();
 const User = require("../database/users");
 const Image = require("../database/image");
 const upload = require("../middlewares/image");
-const ObjectId = require("mongodb").ObjectId;
 const { uploadImageTos3 } = require("../logicModels/uploadImageToS3");
 const { AWS_CONSTANTS } = require("../constants");
 
@@ -102,4 +102,25 @@ router.post(
   }
 );
 
+router.post("/deleteUserImage", async (req, res) => {
+  const uid = ObjectId(req.body.uid);
+  console.log(uid);
+  User.updateOne(
+    { _id: uid },
+    {
+      $set: {
+        image: null,
+        imageUrl: null,
+      },
+    }
+  )
+    .then((result) => {
+      console.log(result);
+      res.json({ ok: true });
+    })
+    .catch((err) => {
+      console.log("error while deleting user image: ", err);
+      res.json({ ok: false });
+    });
+});
 module.exports = router;
